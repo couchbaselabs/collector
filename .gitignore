@@ -1,0 +1,17 @@
+# --- secrets: create once on the VM after clone, NEVER commit ---
+# (git pull won't touch these — they persist across updates)
+credentials.ini
+.env
+
+# --- python ---
+__pycache__/
+*.py[cod]
+env/
+venv/
+.venv/
+*.egg-info/
+
+# --- runtime logs / state ---
+*.log
+collector.log
+collector_errors.log

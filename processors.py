@@ -156,6 +156,29 @@ def _build_ids_for_job(res: Dict, executor: bool) -> List[int]:
     return ids
 
 
+def _fetch_failed_tests(build_url: str) -> list:
+    """Failed test-cases (name/class/suite/status/duration/error/stacktrace) from a
+    Jenkins build's testReport. Used to power the greenboard capella fail popup."""
+    try:
+        data = _jk().get_json(f"{build_url}/testReport", {"depth": 0})
+    except Exception:
+        return []
+    if not data:
+        return []
+    out = []
+    for suite in (data.get("suites") or []):
+        sname = suite.get("name")
+        for c in (suite.get("cases") or []):
+            if c.get("status") == "PASSED":
+                continue
+            out.append({
+                "name": c.get("name"), "className": c.get("className"), "suite": sname,
+                "status": c.get("status"), "duration": c.get("duration"),
+                "errorDetails": c.get("errorDetails"), "errorStackTrace": c.get("errorStackTrace"),
+            })
+    return out
+
+
 # ---------------------------------------------------------------------------
 # ProcessTask — the pickleable unit passed to pool.map
 # ---------------------------------------------------------------------------
@@ -652,6 +675,15 @@ class CapellaProcessor:
         if storage.upsert(view.bucket, key, doc.to_dict()):
             build_hist[hist_key] = bid
             already_scraped.append(scraped_key)
+            # Capture failed test-cases for the greenboard fail popup (failures only).
+            # Stored in `<bucket>._default.jobs`, keyed name+buildId — same collection
+            # the historical mirror uses, so one endpoint serves live + backfilled runs.
+            if (doc.fail_count or 0) > 0:
+                failed = _fetch_failed_tests(url + str(bid))
+                if failed:
+                    storage.upsert_scoped(view.bucket, "_default", "jobs",
+                                          f"ft::{doc.name}::{bid}",
+                                          {"name": doc.name, "buildId": bid, "failedTests": failed})
         else:
             storage.write_error(str(doc.to_dict()))
 

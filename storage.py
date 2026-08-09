@@ -67,6 +67,25 @@ def _col(bucket: str) -> Any:
     return _collections[bucket]
 
 
+def _scoped_col(bucket: str, scope: str, collection: str) -> Any:
+    """Handle to a specific scope.collection (e.g. capella._default.jobs)."""
+    if _cluster is None:
+        raise RuntimeError("Storage not initialised — call init_worker() first")
+    key = f"{bucket}.{scope}.{collection}"
+    if key not in _collections:
+        _collections[key] = _cluster.bucket(bucket).scope(scope).collection(collection)
+    return _collections[key]
+
+
+def upsert_scoped(bucket: str, scope: str, collection: str, key: str, doc: Dict[str, Any]) -> bool:
+    try:
+        _scoped_col(bucket, scope, collection).upsert(key, doc)
+        return True
+    except Exception as exc:
+        logger.warning("upsert_scoped failed %s.%s.%s key=%s: %s", bucket, scope, collection, key, exc)
+        return False
+
+
 # ---------------------------------------------------------------------------
 # Key helpers
 # ---------------------------------------------------------------------------

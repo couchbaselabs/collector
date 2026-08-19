@@ -430,7 +430,7 @@ class ServerProcessor:
         scraped_key: str,
     ) -> None:
         os_arr = doc.name.upper().split("P2P")[1].replace("/", "").split("-")[1:]
-        os_match = next((o for o in os_arr if o in [p.token for p in view.platforms]), None)
+        os_match = next((o for o in os_arr if o in view.platforms), None)
         if not os_match:
             return
 
@@ -604,7 +604,7 @@ class CapellaProcessor:
                 stem = scenario.split("/")[-1].split(".")[0]
                 doc.name = stem
                 doc.os = stem.split("-")[0].upper()
-                if doc.os not in [p.token for p in view.platforms]:
+                if doc.os not in view.platforms:
                     doc.os = resolve_capella_platform(doc.name, view)
         elif doc.name == "UI-Automation-V2":
             spec = get_action(params, "name", "SPEC")

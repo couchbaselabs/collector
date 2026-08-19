@@ -122,7 +122,6 @@ SERVER_VIEW = ViewConfig(
         "http://sdkbuilds.sc.couchbase.com/job/fastfailover-lcb/",
         "http://sdkbuilds.sc.couchbase.com/view/JAVA/job/feature-java",
         "http://qa.sc.couchbase.com/view/OS%20Certification/",
-        "http://uberjenkins.sc.couchbase.com:8080/",
         "http://sdkbuilds.sc.couchbase.com/view/IPV6",
         "http://sdk.jenkins.couchbase.com/view/Greenboard/",
     ],
@@ -267,12 +266,8 @@ VIEWS: List[ViewConfig] = [
     SERVER_VIEW_2,
     SERVER_VIEW,
     BUILD_VIEW,
-    SG_VIEW,
-    CBLITE_CLIB_VIEW,
-    CBLITE_DOTNET_VIEW,
-    CBLITE_JAVA_VIEW,
-    CBLITE_ANDROID_VIEW,
-    CBLITE_IOS_VIEW,
+    # uber-jenkins scrapers (sync_gateway + cblite_*) removed — unused, and each cycle
+    # wasted time hitting uberjenkins.sc.couchbase.com. Re-add here if ever needed.
     OPERATOR_VIEW,
     CAO_VIEW,
     CAPELLA_VIEW,

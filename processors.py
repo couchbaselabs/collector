@@ -510,10 +510,11 @@ class CapellaProcessor:
         if self._SKIP_NAMES.search(job_doc.name):
             return
 
+        # Use the canonical Jenkins URL as-is. (It comes back as
+        # qe-jenkins1.sc.couchbase.com/job/<name>/, which is reachable.) A previous
+        # rewrite to qe-jenkins.sc.couchbase.com/view/Cloud/ pointed at a host that no
+        # longer exists -> [Errno 113] No route to host, so nothing got collected.
         url = job_doc.url
-        if "qe-jenkins1.sc.couchbase.com/" in url:
-            url = url.replace("qe-jenkins1.sc.couchbase.com/",
-                              "qe-jenkins.sc.couchbase.com/view/Cloud/")
 
         res = _jk().get_json(url, {"depth": 0})
         if res is None:

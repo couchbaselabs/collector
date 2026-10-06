@@ -226,7 +226,8 @@ def _filters_pass(view: ViewConfig, job_name: str) -> bool:
 
 
 def _discover_server_jobs(
-    view: ViewConfig, already_scraped: Any, capella_urls: List[str]
+    view: ViewConfig, already_scraped: Any, capella_urls: List[str],
+    keep_capella_executors: bool = False,
 ) -> List[ProcessTask]:
     tasks: List[ProcessTask] = []
     seen_names: set = set()
@@ -250,8 +251,11 @@ def _discover_server_jobs(
             if _is_excluded(view, name) or not _filters_pass(view, name):
                 logger.debug("Skipping %s (excluded/filtered)", name)
                 continue
-            # exclude jobs that belong to the capella view
-            if name in capella_names:
+            # exclude jobs that belong to the capella view — except, on qe-jenkins1
+            # (SERVER_VIEW_2), the test_suite_executor_cloud* jobs: their columnar /
+            # provisioned runs also belong on the server board (os from server_type ->
+            # SERVERLESS_COLUMNAR, PROVISIONED_ONCLOUD), as the old jinja.py collected them.
+            if name in capella_names and not (keep_capella_executors and is_executor(name)):
                 continue
             # Discovery gate — mirrors the old collector's pollTest: only walk a job
             # that is EITHER an executor OR whose name resolves to a known OS. Personal/
@@ -916,7 +920,10 @@ def run(credentials_path: str = "credentials.ini") -> None:
                         _run_pool(pool, _run_capella, rest, "capella")
 
                     else:
-                        tasks = _discover_server_jobs(view, bucket_scraped, capella_urls)
+                        tasks = _discover_server_jobs(
+                            view, bucket_scraped, capella_urls,
+                            keep_capella_executors=view.name != config.SERVER_VIEW.name,
+                        )
                         logger.info("  %d server/sg/lite jobs to process", len(tasks))
                         _run_pool(pool, _run_server, tasks, view.name)
 

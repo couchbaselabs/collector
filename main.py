@@ -599,7 +599,7 @@ def _push_build_doc(args: Any) -> Optional[JobDoc]:
     # compose_test_name above) and again on doc.os. Both, or neither matches.
     if args.arch and args.arch != config.DEFAULT_ARCHITECTURE:
         doc.os = f"{doc.os}-{args.arch}"
-    if args.server_type and args.server_type != config.DEFAULT_SERVER_TYPE:
+    if config.server_type_overrides_os(args.server_type, args.os):
         doc.os = args.server_type.upper()
     # Windows variants collapse to WIN on the server board (executors report
     # "windows22"/"WINDOWS"); without this they split into their own section.

@@ -31,7 +31,7 @@ import cao
 import capella_pipeline as cap
 from config import (
     ViewConfig, P1,
-    DEFAULT_ARCHITECTURE, DEFAULT_SERVER_TYPE,
+    DEFAULT_ARCHITECTURE, DEFAULT_SERVER_TYPE, server_type_overrides_os,
     BUILD_COMPONENTS, MAX_BUILDS_PER_JOB, STOP_AFTER_MISSING_BUILDS,
 )
 from jenkins import JenkinsClient
@@ -319,9 +319,11 @@ class ServerProcessor:
         if arch and arch != DEFAULT_ARCHITECTURE and doc.os:
             doc.os = f"{doc.os}-{arch}"
 
-        # server_type overrides OS for non-default deployments (e.g. containers)
+        # server_type overrides OS for non-default deployments (e.g. containers),
+        # except AWS-dispatched plain debian runs (see server_type_overrides_os).
         server_type = get_action(params, "name", "server_type")
-        if server_type and server_type != DEFAULT_SERVER_TYPE:
+        os_param = get_action(params, "name", "OS") or get_action(params, "name", "os")
+        if server_type_overrides_os(server_type, os_param):
             doc.os = server_type.upper()
 
         # Normalize Windows variants to WIN for the server board. The executor

@@ -21,7 +21,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +349,21 @@ DEFAULT_ARCHITECTURE   = "x86_64"
 DEFAULT_SERVER_TYPE    = "VM"
 DEFAULT_BUCKET_STORAGE = "COUCHSTORE"
 DEFAULT_GSI_TYPE       = "PLASMA"
+
+
+def server_type_overrides_os(server_type: Optional[str], os_param: Optional[str]) -> bool:
+    """True when a server_type param should replace the OS as the board platform.
+
+    Exception: plain `debian` runs sent through the AWS dispatcher (server_type=AWS)
+    are the regular debian suites and stay under DEBIAN. Only exact "debian" counts;
+    versioned distros (debian13, al2023, ...) are the os_cert matrix and stay under AWS.
+    """
+    if not server_type or server_type == DEFAULT_SERVER_TYPE:
+        return False
+    if server_type.upper() == "AWS" and (os_param or "").strip().lower() == "debian":
+        return False
+    return True
+
 
 P0, P1, P2 = "P0", "P1", "P2"
 

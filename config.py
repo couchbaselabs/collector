@@ -117,6 +117,13 @@ _EXCLUDE_PTS: List[re.Pattern] = [
     re.compile(r"test_suite_executor-pts"),
 ]
 
+# Stage copies of the dispatcher/executor (test_infra_runner `stage` branch) run
+# infra changes before they reach prod; their results must not land on the board.
+# Anchored to the full prefix: qe-jenkins1 also has Capella jobs named stage_prod_*.
+_EXCLUDE_STAGE: List[re.Pattern] = [
+    re.compile(r"^stage_test_suite_"),
+]
+
 CAPELLA_VIEW = ViewConfig(
     name="capella",
     urls=[
@@ -174,7 +181,7 @@ SERVER_VIEW = ViewConfig(
     platforms=SERVER_PLATFORMS,
     build_param_names=["version_number", "columnar_version_number", "cluster_version",
                        "build", "cbs_ver", "COUCHBASE_SERVER_VERSION", "CB_VERSION"],
-    exclude_patterns=_EXCLUDE_TMP + _EXCLUDE_RTAF + _EXCLUDE_PTS,
+    exclude_patterns=_EXCLUDE_TMP + _EXCLUDE_RTAF + _EXCLUDE_PTS + _EXCLUDE_STAGE,
 )
 
 SERVER_VIEW_2 = ViewConfig(
@@ -184,7 +191,7 @@ SERVER_VIEW_2 = ViewConfig(
     platforms=SERVER_PLATFORMS,
     build_param_names=["version_number", "cluster_version", "build",
                        "COUCHBASE_SERVER_VERSION", "columnar_version_number"],
-    exclude_patterns=_EXCLUDE_TMP + _EXCLUDE_RTAF + _EXCLUDE_PTS,
+    exclude_patterns=_EXCLUDE_TMP + _EXCLUDE_RTAF + _EXCLUDE_PTS + _EXCLUDE_STAGE,
 )
 
 SG_VIEW = ViewConfig(

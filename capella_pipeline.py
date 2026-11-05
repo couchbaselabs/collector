@@ -277,6 +277,36 @@ def cp_version_from_params(
     return cp_version, commit_url
 
 
+_DESC_SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(-\d+)?$")
+_DESC_SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
+
+
+def cp_version_from_description(description: Optional[str]) -> Optional[str]:
+    """
+    The control-plane ref a pipeline actually deployed, read from its description.
+
+    Sanity pipelines set it as "<PREFIX>_<cp ref>[_<sha>]_<server>_<n>" or
+    "<PREFIX>_<n>_<cp ref>_<server>", e.g. "SBX-CP-PROV-SANITY_AV-1234_my_branch_7.6.12_4643"
+    or "PROD-SANITY_45_2.2.297-hotfix1_7.6.12". The deployed branch/tag is often not in the
+    params (cp_branch_to_deploy stays "main"), so without this sbx runs were recorded
+    against main's HEAD SHA. Returns None when the description has no such shape.
+    """
+    parts = (description or "").strip().split("_")
+    if len(parts) < 3:
+        return None
+    parts = parts[1:]
+    if parts[0].isdigit():
+        parts = parts[1:]
+    if parts and parts[-1].isdigit():
+        parts = parts[:-1]
+    if len(parts) < 2 or not _DESC_SEMVER_RE.match(parts[-1]):
+        return None
+    ref = parts[:-1]
+    if len(ref) > 1 and _DESC_SHA_RE.match(ref[-1]):
+        ref = ref[:-1]
+    return "_".join(ref) or None
+
+
 def descriptors_from_console(lines: Any) -> List[str]:
     """
     Every `descriptor=` query param appearing in a dispatcher build's console output.

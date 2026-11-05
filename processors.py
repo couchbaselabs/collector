@@ -623,8 +623,15 @@ class CapellaProcessor:
             return existing
         params   = extract_params(res.get("actions"))
         run_date = res.get("timestamp") or 0
-        cp_version, commit_url = cap.cp_version_from_params(
-            params, run_date, cap.github_token(), fetch_commit=cap.fetch_commit_sha)
+        cp_version, commit_url = None, None
+        described = cap.cp_version_from_description(res.get("description"))
+        if described:
+            # The description names what was deployed; params often still say "main".
+            cp_version = described
+            commit_url = f"https://github.com/{cap.GIT_OWNER}/{cap.GIT_REPO}/tree/{described}"
+        else:
+            cp_version, commit_url = cap.cp_version_from_params(
+                params, run_date, cap.github_token(), fetch_commit=cap.fetch_commit_sha)
         doc = {
             "name":        name,
             "buildId":     build_id,

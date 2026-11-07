@@ -110,11 +110,12 @@ _EXCLUDE_RTAF: List[re.Pattern] = [
     re.compile(r"test_suite_executor-RTAF"),
 ]
 
-# Coverage-build runs (PTS) go to their own executor copy on qe-jenkins1. They run a
-# coverage-instrumented build whose number (8.5.0-53554) sorts above every real 8.5.0 build,
-# so ingesting them would put a fake "latest build" on the board.
+# Coverage-build runs (PTS) go to their own executor copies on qe-jenkins1
+# (test_suite_executor-pts, test_suite_executor-TAF-pts). They run a coverage-instrumented
+# build whose number (8.5.0-53554) sorts above every real 8.5.0 build, so ingesting them would
+# put a fake "latest build" on the board.
 _EXCLUDE_PTS: List[re.Pattern] = [
-    re.compile(r"test_suite_executor-pts"),
+    re.compile(r"test_suite_executor(-TAF)?-pts"),
 ]
 
 # Stage copies of the dispatcher/executor (test_infra_runner `stage` branch) run
